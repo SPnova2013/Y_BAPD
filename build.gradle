@@ -6,21 +6,21 @@ buildscript {
     dependencies {
         //the R8 version bundled with AGP 8.1.0+ causes crashes on very old Android versions
         //This affects ICS and Lollipop at least, maybe also KitKat
-        classpath 'com.android.tools.build:gradle:8.0.2'
+        classpath 'com.android.tools.build:gradle:8.5.1'
     }
 }
 
 allprojects {
 
     ext {
-        appName = 'Blue Archive Pixel Dungeon'
-        appPackageName = 'com.bluearchivepixel.bluearchivepixeldungeon'
+        appName = 'Yogurt Blue Archive Pixel Dungeon'
+        appPackageName = 'com.bluearchivepixel.yogurtbluearchivepixeldungeon'
 
-        appVersionCode = 769
+        appVersionCode = 770
         appVersionName = '232'
         //for arranged version code and version name
         appVersionCode += 11
-        appVersionName += '_0.4.0_cn_RC2'
+        appVersionName += '_0.4.0_cn_RC2_Y240828'
 
         appJavaCompatibility = JavaVersion.VERSION_1_8
 

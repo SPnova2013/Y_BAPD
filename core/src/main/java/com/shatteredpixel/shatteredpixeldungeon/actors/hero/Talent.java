@@ -410,7 +410,40 @@ public enum Talent {
 	IZUNA_ABIL_32					(18, 8, 4),
 	IZUNA_ABIL_33					(19, 8, 4),
 
-
+	//Hibiki T1
+	THERMO_YEILD					(0, 0),
+	CRAFTSMANSHIP					(0, 0),
+	BARTITSU						(0, 0),
+	REACTIVE_SHIELD					(0, 0),
+	//Hibiki T2
+	EFFECTIVE_MEAL					(0, 0),
+	SELF_GUARD_WEAPON				(0, 0),
+	HB_5							(0, 0),
+	SHELL_SHOCK						(0, 0),
+	MT_MASTER						(0, 0),
+	//Hibiki T3
+	PROFICIENT_RELOAD				(0, 0,3),
+	BARREL_BURST					(0, 0,3),
+	//Integrated Battle T3
+	SYNC_FIRING						(0, 0,3),
+	POINT_DEFENSE					(0, 0,3),
+	STREAMLINED_PROTOCOLS			(0, 0,3),
+	//Christmas tree T3
+	TERRITORY_CREATION				(0, 0,3),
+	BACKWARD_COMPATIBLE				(0, 0,3),
+	SUPPORT_FIRE					(0, 0,3),
+	//Hibiki Ability 1
+	HIBIKI_ABIL_11					(0, 0, 4),
+	HIBIKI_ABIL_12					(0, 0, 4),
+	HIBIKI_ABIL_13					(0, 0, 4),
+	//Hibiki Ability 2
+	HIBIKI_ABIL_21					(0, 0, 4),
+	HIBIKI_ABIL_22					(0, 0, 4),
+	HIBIKI_ABIL_23					(0, 0, 4),
+	//Hibiki Ability 3
+	HIBIKI_ABIL_31					(0, 0, 4),
+	HIBIKI_ABIL_32					(0, 0, 4),
+	HIBIKI_ABIL_33					(0, 0, 4),
 
 
 	//Rogue T1
@@ -1330,6 +1363,9 @@ public enum Talent {
 			case IZUNA:
 				Collections.addAll(tierTalents, BASIC_NINJUTSU, ARMOR_INTUITION, SURPRISE_ATTACK, ENERGY_COLLECT);
 				break;
+			case HIBIKI:
+				Collections.addAll(tierTalents, THERMO_YEILD, CRAFTSMANSHIP, BARTITSU, REACTIVE_SHIELD);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1368,6 +1404,9 @@ public enum Talent {
 			case IZUNA:
 				Collections.addAll(tierTalents, MEAL_SET, HEALING_SCROLL, QUIET_MOVE, WIDER_SEARCH, THROW_MASTER);
 				break;
+			case HIBIKI:
+				Collections.addAll(tierTalents, EFFECTIVE_MEAL, SELF_GUARD_WEAPON, HB_5, SHELL_SHOCK, MT_MASTER);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1405,6 +1444,9 @@ public enum Talent {
 				break;
 			case IZUNA:
 				Collections.addAll(tierTalents, DURABLE_THROW, SECRET_WEAPON);
+				break;
+			case HIBIKI:
+				Collections.addAll(tierTalents, PROFICIENT_RELOAD, BARREL_BURST);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -1487,6 +1529,12 @@ public enum Talent {
 				break;
 			case IZUNA_EX_EXPLOSION:
 				Collections.addAll(tierTalents, EXPLOSION_1, EXPLOSION_2, EXPLOSION_3);
+				break;
+			case HIBIKI_EX_INTEGRATED_BATTLE:
+				Collections.addAll(tierTalents, SYNC_FIRING, POINT_DEFENSE, STREAMLINED_PROTOCOLS);
+				break;
+			case HIBIKI_EX_CHRISTMAS_TREE:
+				Collections.addAll(tierTalents, TERRITORY_CREATION, BACKWARD_COMPATIBLE, SUPPORT_FIRE);
 				break;
 		}
 		for (Talent talent : tierTalents){

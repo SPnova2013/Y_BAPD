@@ -70,6 +70,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfEnchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfIntuition;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FancyLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.HeavyBoomerang;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Door;
@@ -160,6 +161,7 @@ public abstract class Level implements Bundlable {
 	public SparseArray<Heap> heaps;
 	public HashMap<Class<? extends Blob>,Blob> blobs;
 	public SparseArray<Plant> plants;
+	public SparseArray<FancyLight.FLMine> mines;
 	public SparseArray<Trap> traps;
 	public HashSet<CustomTilemap> customTiles;
 	public HashSet<CustomTilemap> customWalls;
@@ -182,6 +184,7 @@ public abstract class Level implements Bundlable {
 	private static final String LOCKED      = "locked";
 	private static final String HEAPS		= "heaps";
 	private static final String PLANTS		= "plants";
+	private static final String MINES		= "mines";
 	private static final String TRAPS       = "traps";
 	private static final String CUSTOM_TILES= "customTiles";
 	private static final String CUSTOM_WALLS= "customWalls";
@@ -268,6 +271,7 @@ public abstract class Level implements Bundlable {
 			heaps = new SparseArray<>();
 			blobs = new HashMap<>();
 			plants = new SparseArray<>();
+			mines = new SparseArray<>();
 			traps = new SparseArray<>();
 			customTiles = new HashSet<>();
 			customWalls = new HashSet<>();
@@ -341,6 +345,7 @@ public abstract class Level implements Bundlable {
 		heaps = new SparseArray<>();
 		blobs = new HashMap<>();
 		plants = new SparseArray<>();
+		mines = new SparseArray<>();
 		traps = new SparseArray<>();
 		customTiles = new HashSet<>();
 		customWalls = new HashSet<>();
@@ -368,6 +373,12 @@ public abstract class Level implements Bundlable {
 		for (Bundlable p : collection) {
 			Plant plant = (Plant)p;
 			plants.put( plant.pos, plant );
+		}
+
+		collection = bundle.getCollection(MINES);
+		for(Bundlable m : collection){
+			FancyLight.FLMine mine = (FancyLight.FLMine)m;
+			mines.put( mine.pos, mine);
 		}
 
 		collection = bundle.getCollection( TRAPS );
@@ -433,6 +444,7 @@ public abstract class Level implements Bundlable {
 		bundle.put( LOCKED, locked );
 		bundle.put( HEAPS, heaps.valueList() );
 		bundle.put( PLANTS, plants.valueList() );
+		bundle.put( MINES, mines.valueList() );
 		bundle.put( TRAPS, traps.valueList() );
 		bundle.put( CUSTOM_TILES, customTiles );
 		bundle.put( CUSTOM_WALLS, customWalls );
@@ -1008,7 +1020,19 @@ public abstract class Level implements Bundlable {
 		
 		return plant;
 	}
-	
+	public FancyLight.FLMine mine(Plant.Seed seed, int pos) {
+		FancyLight.FLMine mine = mines.get( pos );
+		if (mines != null) {
+			//mines.wither();
+		}
+
+		mine = seed.couch( pos, this );
+		mines.put( pos, mine );
+
+		GameScene.plantSeed( pos );
+
+		return mine;
+	}
 	public void uproot( int pos ) {
 		plants.remove(pos);
 		GameScene.updateMap( pos );
@@ -1208,6 +1232,8 @@ public abstract class Level implements Bundlable {
 
 			}
 		}
+		FancyLight.FLMine mine = mines.get(cell);
+		if(mine!=null) mine.trigger();
 
 		if (hard && Blob.volumeAt(cell, Web.class) > 0){
 			blobs.get(Web.class).clear(cell);

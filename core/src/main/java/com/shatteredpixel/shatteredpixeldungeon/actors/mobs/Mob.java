@@ -967,6 +967,10 @@ public abstract class Mob extends Char {
 				Statistics.izunaUnlocked = true;
 				Badges.validateIzunaUnlock();
 			}
+			if (!Statistics.hibikiUnlocked) {
+				Statistics.hibikiUnlocked = true;
+				Badges.validateHibikiUnlock();
+			}
 		}
 
 		super.die( cause );

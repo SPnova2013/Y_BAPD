@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.RainbowParticl
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
+import com.sun.org.apache.bcel.internal.generic.FLOAD;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.Visual;
@@ -90,10 +91,14 @@ public class MagicMissile extends Emitter {
 	public static final int NOTHING_CONE    = 114;
 
 	public void reset( int type, int from, int to, Callback callback ) {
+		reset(type,from,to,callback,SPEED);
+	}
+	public void reset( int type, int from, int to, Callback callback ,float changeableSpeed) {
 		reset( type,
 				DungeonTilemap.raisedTileCenterToWorld( from ),
 				DungeonTilemap.raisedTileCenterToWorld( to ),
-				callback );
+				callback,
+				changeableSpeed);
 	}
 
 	public void reset( int type, Visual from, Visual to, Callback callback ) {
@@ -109,8 +114,10 @@ public class MagicMissile extends Emitter {
 				DungeonTilemap.raisedTileCenterToWorld( to ),
 				callback);
 	}
-
 	public void reset( int type, PointF from, PointF to, Callback callback ) {
+		reset(type,from,to,callback,SPEED);
+	}
+	public void reset( int type, PointF from, PointF to, Callback callback , float changeableSpeed) {
 		this.callback = callback;
 		
 		this.to = to;
@@ -121,10 +128,10 @@ public class MagicMissile extends Emitter {
 		height = 0;
 		
 		PointF d = PointF.diff( to, from );
-		PointF speed = new PointF( d ).normalize().scale( SPEED );
+		PointF speed = new PointF( d ).normalize().scale( changeableSpeed );
 		sx = speed.x;
 		sy = speed.y;
-		time = d.length() / SPEED;
+		time = d.length() / changeableSpeed;
 
 		switch(type){
 			case MAGIC_MISSILE: default:

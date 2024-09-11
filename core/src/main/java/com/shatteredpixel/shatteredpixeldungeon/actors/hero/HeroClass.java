@@ -21,6 +21,12 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
 
+import static com.shatteredpixel.shatteredpixeldungeon.items.Generator.Category.GUN_T1;
+import static com.shatteredpixel.shatteredpixeldungeon.items.Generator.Category.GUN_T2;
+import static com.shatteredpixel.shatteredpixeldungeon.items.Generator.Category.GUN_T3;
+import static com.shatteredpixel.shatteredpixeldungeon.items.Generator.Category.GUN_T4;
+import static com.shatteredpixel.shatteredpixeldungeon.items.Generator.Category.GUN_T5;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
@@ -28,9 +34,13 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.aris.Aris_1;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.aris.Aris_2;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.aris.Aris_3;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.hibiki.Hibiki_1;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.hibiki.Hibiki_2;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.hibiki.Hibiki_3;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.hoshino.Hoshino_1;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.hoshino.Hoshino_2;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.hoshino.Hoshino_3;
@@ -99,6 +109,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutat
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.CurseInfusion;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.ThrowingSet;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FancyLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SuperNova;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.gun.AR.AR_tier1;
@@ -123,7 +134,8 @@ public enum HeroClass {
 	NOA(HeroSubClass.NOA_EX_LARGE_MAGAZINE, HeroSubClass.NOA_EX_DOUBLE_BARREL),
 	MIYU(HeroSubClass.MIYU_EX_PENETRATION_SHOT, HeroSubClass.MIYU_EX_SNIPING_BULLET),
 	YUZU(HeroSubClass.YUZU_EX_GAME_START, HeroSubClass.YUZU_EX_STICKY_GRENADE),
-	IZUNA(HeroSubClass.IZUNA_EX_TELEPORT, HeroSubClass.IZUNA_EX_EXPLOSION);
+	IZUNA(HeroSubClass.IZUNA_EX_TELEPORT, HeroSubClass.IZUNA_EX_EXPLOSION),
+	HIBIKI(HeroSubClass.HIBIKI_EX_INTEGRATED_BATTLE, HeroSubClass.HIBIKI_EX_CHRISTMAS_TREE);
 
 	private HeroSubClass[] subClasses;
 
@@ -208,8 +220,11 @@ public enum HeroClass {
 			case IZUNA:
 				initIzuna( hero );
 				break;
+			case HIBIKI:
+				initHibiki(hero);
+				break;
 		}
-
+		changeGunProbs();
 		if (SPDSettings.quickslotWaterskin()) {
 			for (int s = 0; s < QuickSlot.SIZE; s++) {
 				if (Dungeon.quickslot.getItem(s) == null) {
@@ -219,6 +234,36 @@ public enum HeroClass {
 			}
 		}
 
+	}
+	public void changeGunProbs(){
+		float[] probs;//AR GL HG MG SG SMG SR
+		switch(this){
+			case SHIROKO:
+				probs = new float[]{ 4, 2, 2, 2, 2, 2, 2 };
+				break;
+			case YUZU:
+				probs = new float[]{ 2, 4, 2, 2, 2, 2, 2 };
+				break;
+			case NOA:
+				probs = new float[]{ 2, 2, 4, 2, 2, 2, 2 };
+				break;
+			case NONOMI:
+				probs = new float[]{ 2, 2, 2, 4, 2, 2, 2 };
+				break;
+			case HOSHINO:
+				probs = new float[]{ 2, 2, 2, 2, 4, 2, 2 };
+				break;
+			case MIYAKO:
+				probs = new float[]{ 2, 2, 2, 2, 2, 4, 2 };
+				break;
+			case MIYU:
+				probs = new float[]{ 2, 2, 2, 2, 2, 2, 4 };
+				break;
+			default:
+				probs = new float[]{ 2, 2, 2, 2, 2, 2, 2 };
+				break;
+		}
+		GUN_T1.defaultProbs = GUN_T1.probs = GUN_T2.defaultProbs = GUN_T2.probs = GUN_T3.defaultProbs = GUN_T3.probs = GUN_T4.defaultProbs = GUN_T4.probs = GUN_T5.defaultProbs = GUN_T5.probs = probs;
 	}
 
 	public Badges.Badge masteryBadge() {
@@ -241,6 +286,8 @@ public enum HeroClass {
 				return Badges.Badge.MASTERY_YUZU;
 			case IZUNA:
 				return Badges.Badge.MASTERY_IZUNA;
+			case HIBIKI:
+				return Badges.Badge.MASTERY_HIBIKI;
 		}
 		return null;
 	}
@@ -450,6 +497,30 @@ public enum HeroClass {
 		new PotionOfLiquidFlame().identify();
 		new ScrollOfMagicMapping().identify();
 	}
+	private static void initHibiki( Hero hero ) {
+		FancyLight fl = new FancyLight();
+
+		(hero.belongings.weapon = fl).identify();
+		hero.belongings.weapon.activate(hero);
+
+		CloakOfShadows cloak = new CloakOfShadows();
+		(hero.belongings.artifact = cloak).identify();
+		hero.belongings.artifact.activate( hero );
+
+		ThrowingSet throwingSet = new ThrowingSet();
+		throwingSet.collect();
+
+		ThrowingKnife knives = new ThrowingKnife();
+		knives.quantity(3).collect();
+
+		Dungeon.quickslot.setSlot(0, fl);
+		Dungeon.quickslot.setSlot(1, cloak);
+		Dungeon.quickslot.setSlot(2, throwingSet);
+		Dungeon.quickslot.setSlot(3, knives);
+
+		new PotionOfLiquidFlame().identify();
+		new ScrollOfMagicMapping().identify();
+	}
 
 	public String title() {
 		return Messages.get(HeroClass.class, name());
@@ -470,23 +541,25 @@ public enum HeroClass {
 	public ArmorAbility[] armorAbilities(){
 		switch (this) {
 			case ARIS: default:
-				return new ArmorAbility[]{new Aris_1(), new Aris_2(), new Aris_3()};
+				return new ArmorAbility[]{new Aris_1(), new Aris_2(), new Ratmogrify()};
 			case NONOMI:
-				return new ArmorAbility[]{new Nonomi_1(), new Nonomi_2(), new Nonomi_3()};
+				return new ArmorAbility[]{new Nonomi_1(), new Nonomi_2(), new Ratmogrify()};
 			case MIYAKO:
-				return new ArmorAbility[]{new Miyako_1(), new Miyako_2(), new Miyako_3()};
+				return new ArmorAbility[]{new Miyako_1(), new Miyako_2(), new Ratmogrify()};
 			case HOSHINO:
-				return new ArmorAbility[]{new Hoshino_1(), new Hoshino_2(), new Hoshino_3()};
+				return new ArmorAbility[]{new Hoshino_1(), new Hoshino_2(), new Ratmogrify()};
 			case SHIROKO:
-				return new ArmorAbility[]{new Shiroko_1(), new Shiroko_2(), new Shiroko_3()};
+				return new ArmorAbility[]{new Shiroko_1(), new Shiroko_2(), new Ratmogrify()};
 			case NOA:
-				return new ArmorAbility[]{new Noa_1(), new Noa_2(), new Noa_3()};
+				return new ArmorAbility[]{new Noa_1(), new Noa_2(), new Ratmogrify()};
 			case MIYU:
-				return new ArmorAbility[]{new Miyu_1(), new Miyu_2(), new Miyu_3()};
+				return new ArmorAbility[]{new Miyu_1(), new Miyu_2(), new Ratmogrify()};
 			case YUZU:
-				return new ArmorAbility[]{new Yuzu_1(), new Yuzu_2(), new Yuzu_3()};
+				return new ArmorAbility[]{new Yuzu_1(), new Yuzu_2(), new Ratmogrify()};
 			case IZUNA:
-				return new ArmorAbility[]{new Izuna_1(), new Izuna_2(), new Izuna_3()};
+				return new ArmorAbility[]{new Izuna_1(), new Izuna_2(), new Ratmogrify()};
+			case HIBIKI:
+				return new ArmorAbility[]{new Hibiki_1(), new Hibiki_2(), new Ratmogrify()};
 		}
 	}
 
@@ -510,6 +583,8 @@ public enum HeroClass {
 				return Assets.Sprites.YUZU;
 			case IZUNA:
 				return Assets.Sprites.IZUNA;
+			case HIBIKI:
+				return Assets.Sprites.HIBIKI;
 		}
 	}
 
@@ -533,6 +608,8 @@ public enum HeroClass {
 				return Assets.Splashes.YUZU;
 			case IZUNA:
 				return Assets.Splashes.IZUNA;
+			case HIBIKI:
+				return Assets.Splashes.HIBIKI;
 		}
 	}
 	
@@ -559,6 +636,8 @@ public enum HeroClass {
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_YUZU);
 			case IZUNA:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_IZUNA);
+			case HIBIKI:
+				return Badges.isUnlocked(Badges.Badge.UNLOCK_HIBIKI);
 		}
 	}
 	

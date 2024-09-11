@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.noosa.Game;
 
@@ -72,7 +73,10 @@ public enum HeroSubClass {
 	YUZU_EX_STICKY_GRENADE(HeroIcon.YUZU_EX_STICKY_GRENADE),
 
 	IZUNA_EX_TELEPORT(HeroIcon.IZUNA_EX_TELEPORT),
-	IZUNA_EX_EXPLOSION(HeroIcon.IZUNA_EX_EXPLOSION);
+	IZUNA_EX_EXPLOSION(HeroIcon.IZUNA_EX_EXPLOSION),
+
+	HIBIKI_EX_INTEGRATED_BATTLE(ItemSpriteSheet.UNDONE_MARK),
+	HIBIKI_EX_CHRISTMAS_TREE(ItemSpriteSheet.UNDONE_MARK);
 
 	int icon;
 

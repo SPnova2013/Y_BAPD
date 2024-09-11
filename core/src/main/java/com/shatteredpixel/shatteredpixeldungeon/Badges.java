@@ -60,6 +60,7 @@ public class Badges {
 		MASTERY_MIYU,
 		MASTERY_YUZU,
 		MASTERY_IZUNA,
+		MASTERY_HIBIKI,
 		FOUND_RATMOGRIFY,
 
 		//bronze
@@ -71,6 +72,7 @@ public class Badges {
 		UNLOCK_MIYU            		( 6 ),
 		UNLOCK_YUZU            		( 7 ),
 		UNLOCK_IZUNA            	( 8 ),
+		UNLOCK_HIBIKI				( 8 ),
 		MONSTERS_SLAIN_1            ( 16+6 ),
 		MONSTERS_SLAIN_2            ( 16+7 ),
 		GOLD_COLLECTED_1            ( 16+8 ),
@@ -122,6 +124,7 @@ public class Badges {
 		BOSS_SLAIN_1_MIYU,
 		BOSS_SLAIN_1_YUZU,
 		BOSS_SLAIN_1_IZUNA,
+		BOSS_SLAIN_1_HIBIKI,
 		BOSS_SLAIN_1_ALL_CLASSES    ( 16+55, true ),
 		GAMES_PLAYED_2              ( 16+56, true ),
 		HIGH_SCORE_2                ( 16+57 ),
@@ -173,6 +176,7 @@ public class Badges {
 		VICTORY_MIYU,
 		VICTORY_YUZU,
 		VICTORY_IZUNA,
+		VICTORY_HIBIKI,
 		VICTORY_ALL_CLASSES         ( 16+104, true ),
 		DEATH_FROM_ALL              ( 16+105, true ),
 		BOSS_SLAIN_3_GLADIATOR,
@@ -725,6 +729,7 @@ public class Badges {
 		firstBossClassBadges.put(HeroClass.MIYU, Badge.BOSS_SLAIN_1_MIYU);
 		firstBossClassBadges.put(HeroClass.YUZU, Badge.BOSS_SLAIN_1_YUZU);
 		firstBossClassBadges.put(HeroClass.IZUNA, Badge.BOSS_SLAIN_1_IZUNA);
+		firstBossClassBadges.put(HeroClass.HIBIKI, Badge.BOSS_SLAIN_1_HIBIKI);
 	}
 
 	private static LinkedHashMap<HeroClass, Badge> victoryClassBadges = new LinkedHashMap<>();
@@ -738,6 +743,7 @@ public class Badges {
 		victoryClassBadges.put(HeroClass.MIYU, Badge.VICTORY_MIYU);
 		victoryClassBadges.put(HeroClass.YUZU, Badge.VICTORY_YUZU);
 		victoryClassBadges.put(HeroClass.IZUNA, Badge.VICTORY_IZUNA);
+		victoryClassBadges.put(HeroClass.HIBIKI, Badge.VICTORY_HIBIKI);
 	}
 
 	private static LinkedHashMap<HeroSubClass, Badge> thirdBossSubclassBadges = new LinkedHashMap<>();
@@ -884,6 +890,9 @@ public class Badges {
 			case IZUNA:
 				badge = Badge.MASTERY_IZUNA;
 				break;
+			case HIBIKI:
+				badge = Badge.MASTERY_HIBIKI;
+				break;
 		}
 		
 		unlock(badge);
@@ -940,7 +949,11 @@ public class Badges {
 			displayBadge( Badge.UNLOCK_IZUNA );
 		}
 	}
-	
+	public static void validateHibikiUnlock(){
+		if (Statistics.hibikiUnlocked && !isUnlocked(Badge.UNLOCK_HIBIKI)){
+			displayBadge( Badge.UNLOCK_HIBIKI );
+		}
+	}
 	public static void validateMasteryCombo( int n ) {
 		if (!local.contains( Badge.MASTERY_COMBO ) && n == 10) {
 			Badge badge = Badge.MASTERY_COMBO;
