@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Awareness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barkskin;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -1562,6 +1563,11 @@ public class Hero extends Char {
 			hero.heal(2+3*hero.pointsInTalent(Talent.EMERGENCY_HEALING));
 			Buff.affect(hero, Talent.EmergencyHealingCooldown.class, 50f);
 		}
+
+		if(hero.hasTalent(Talent.REACTIVE_SHIELD) && enemy.buff(Talent.ReactiveShieldTracker.class)==null){
+			Buff.affect(hero, Barrier.class).setShield(1+hero.pointsInTalent(Talent.REACTIVE_SHIELD));
+			Buff.affect(enemy, Talent.ReactiveShieldTracker.class);
+		}
 		
 		return super.defenseProc( enemy, damage );
 	}
@@ -2088,6 +2094,14 @@ public class Hero extends Char {
 
 		if (heroClass == HeroClass.MIYU) {
 			stealth += (1 + lvl/9f + pointsInTalent(Talent.BLURRY_FIGURE));
+		}
+
+		if (Dungeon.hero.heroClass == HeroClass.IZUNA) {
+			stealth += 2;
+		}
+
+		if (Dungeon.hero.hasTalent(Talent.BASIC_NINJUTSU)) {
+			stealth += Dungeon.hero.pointsInTalent(Talent.BASIC_NINJUTSU);
 		}
 		
 		return stealth;

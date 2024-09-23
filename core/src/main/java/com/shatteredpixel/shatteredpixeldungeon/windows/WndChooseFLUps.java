@@ -61,16 +61,16 @@ public class WndChooseFLUps extends Window {
         int safeCount = 0;
         float pos = body.bottom() + 3*GAP;
         final String[] flUpgrades = new String[3];
-        flUpgrades[0]= FancyLight.FLUpgrades.getRandomByWeapon(item.getClass().getSuperclass().getSimpleName());
+        flUpgrades[0]= FancyLight.FLUpgrades.getRandomByItem(item);
         do{
             safeCount++;
-            flUpgrades[1]= Random.Int(2)==0 ? FancyLight.FLUpgrades.getRandomByWeapon(item.getClass().getSuperclass().getSimpleName()) : FancyLight.FLUpgrades.getRandom();
-        }while(invalidFLUps(fl, flUpgrades, flUpgrades[1]) && (safeCount<10));
+            flUpgrades[1]= Random.Int(2)==0 ? FancyLight.FLUpgrades.getRandomByItem(item) : FancyLight.FLUpgrades.getRandom();
+        }while(invalidFLUps(flUpgrades, flUpgrades[1]) && (safeCount<10));
         safeCount = 0;
         do{
             safeCount++;
             flUpgrades[2]= FancyLight.FLUpgrades.getRandom();
-        }while(invalidFLUps(fl, flUpgrades, flUpgrades[2]) && (safeCount < 10));
+        }while(invalidFLUps(flUpgrades, flUpgrades[2]) && (safeCount < 10));
         for (String ups : flUpgrades) {
             RedButton abilityButton = new RedButton(Messages.get(fl, ups+".short_desc"), 6){
                 @Override
@@ -123,19 +123,12 @@ public class WndChooseFLUps extends Window {
         resize(WIDTH, (int)pos);
 
     }
-    private boolean invalidFLUps(FancyLight fl,String[] flUpgrades, String str){
+    private boolean invalidFLUps(String[] flUpgrades, String str){
         for(String s : flUpgrades){
             if(s!=null){
                 if(Objects.equals(str, s)) return true;
             }
         }
-        if(Objects.equals(str, "StarShell") && fl.isStar())                                         return true;
-        if(Objects.equals(str, "SemiClosed") && fl.get(FancyLight.FL.FIRENOISE)<=0)                 return true;
-        if(Objects.equals(str, "FireControl") && fl.get(FancyLight.FL.ACC)>=100)                    return true;
-        if(Objects.equals(str, "FireControl") && Random.Float()<1/fl.get(FancyLight.FL.EXPRNG))     return true;
-        if(Objects.equals(str, "LayMine") && fl.isMine())                                           return true;
-        if(Objects.equals(str,"Portable") && fl.get(FancyLight.FL.SETTIME)<=0)                      return true;
-        if(Objects.equals(str,"Hypervelocity") && fl.get(FancyLight.FL.FLYTIME)<=0)                 return true;
-
+        return false;
     }
 }

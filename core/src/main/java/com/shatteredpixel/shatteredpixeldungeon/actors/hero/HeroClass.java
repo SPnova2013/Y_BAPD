@@ -161,25 +161,25 @@ public enum HeroClass {
 		waterskin.collect();
 
 		if (DeviceCompat.isDebug() || SPDSettings.customSeed().equals("test")) {
-			new PotionOfExperience().identify().quantity(30).collect();
-			new RingOfMight().identify().upgrade(10).collect();
-			new EXSkillDisc().collect();
+//			new PotionOfExperience().identify().quantity(30).collect();
+//			new RingOfMight().identify().upgrade(10).collect();
+//			new EXSkillDisc().collect();
 //			new SG_tier2().identify().collect();
-			new CurseInfusion().quantity(200).collect();
-			new ScrollOfUpgrade().identify().quantity(200).collect();
+//			new CurseInfusion().quantity(200).collect();
+//			new ScrollOfUpgrade().identify().quantity(200).collect();
 //			new StoneOfAugmentation().quantity(200).collect();
 //			new PotionOfMindVision().identify().quantity(200).collect();
 //			new RingOfWealth().identify().upgrade(100).collect();
-			new PlateArmor().identify().upgrade(100).collect();
-			new RingOfFuror().identify().upgrade(100).collect();
-			new RingOfHaste().identify().upgrade(100).collect();
+//			new PlateArmor().identify().upgrade(100).collect();
+//			new RingOfFuror().identify().upgrade(100).collect();
+//			new RingOfHaste().identify().upgrade(100).collect();
 			new Teleporter().collect();
-			new KingsCrown().collect();
-			new Pasty().quantity(200).collect();
-			new PotionOfMindVision().identify().quantity(200).collect();
+//			new KingsCrown().collect();
+//			new Pasty().quantity(200).collect();
+//			new PotionOfMindVision().identify().quantity(200).collect();
 //			new ScrollOfEnchantment().identify().quantity(200).collect();
-			new Amulet().collect();
-			new ScrollOfTransmutation().quantity(200).identify().collect();
+//			new Amulet().collect();
+//			new ScrollOfTransmutation().quantity(200).identify().collect();
 		}
 
 		new ScrollOfIdentify().identify();

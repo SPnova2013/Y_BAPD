@@ -58,6 +58,8 @@ import com.watabou.utils.Reflection;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import javax.swing.text.StyledEditorKit;
+
 public class UnstableSpellbook extends Artifact {
 
 	{
@@ -173,6 +175,7 @@ public class UnstableSpellbook extends Artifact {
 				} else {
 					scroll.doRead();
 					Talent.onArtifactUsed(Dungeon.hero);
+					Talent.onScrollUsed(Dungeon.hero,Dungeon.hero.pos,1);
 				}
 				updateQuickslot();
 			}

@@ -99,6 +99,9 @@ public class Swiftthistle extends Plant {
 		public void reset(){
 			left = 7f;
 		}
+		public void set(float time){
+			left = time;
+		}
 		
 		@Override
 		public String desc() {

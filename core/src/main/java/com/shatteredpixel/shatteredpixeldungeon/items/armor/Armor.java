@@ -372,14 +372,6 @@ public class Armor extends EquipableItem {
 		if (hasGlyph(Obfuscation.class, owner)){
 			stealth += (1 + buffedLvl()/3f) * glyph.procChanceMultiplier(owner);
 		}
-
-		if (Dungeon.hero.heroClass == HeroClass.IZUNA) {
-			stealth += 2;
-		}
-
-		if (Dungeon.hero.hasTalent(Talent.BASIC_NINJUTSU)) {
-			stealth += Dungeon.hero.pointsInTalent(Talent.BASIC_NINJUTSU);
-		}
 		
 		return stealth;
 	}

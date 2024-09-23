@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
+import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SELF_GUARD_WEAPON;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -30,7 +32,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FancyLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.gun.HG.HG;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.gun.SG.SG;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.gun.SMG.SMG;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -51,7 +56,11 @@ abstract public class KindOfWeapon extends EquipableItem {
 	
 	@Override
 	public void execute(Hero hero, String action) {
-		if (this instanceof HG && hero.subClass == HeroSubClass.NOA_EX_DOUBLE_BARREL && action.equals(AC_EQUIP)){
+		if ((
+				(this instanceof HG && hero.subClass == HeroSubClass.NOA_EX_DOUBLE_BARREL) ||
+				(this instanceof HG && hero.hasTalent(SELF_GUARD_WEAPON) && hero.belongings.weapon instanceof FancyLight) ||
+				((this instanceof SMG || this instanceof SG) && hero.pointsInTalent(SELF_GUARD_WEAPON)==2  && hero.belongings.weapon instanceof FancyLight)
+		)&& action.equals(AC_EQUIP)){
 			usesTargeting = false;
 			String primaryName = Messages.titleCase(hero.belongings.weapon != null ? hero.belongings.weapon.trueName() : Messages.get(KindOfWeapon.class, "empty"));
 			String secondaryName = Messages.titleCase(hero.belongings.secondWep != null ? hero.belongings.secondWep.trueName() : Messages.get(KindOfWeapon.class, "empty"));

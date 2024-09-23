@@ -1020,17 +1020,8 @@ public abstract class Level implements Bundlable {
 		
 		return plant;
 	}
-	public FancyLight.FLMine mine(Plant.Seed seed, int pos) {
-		FancyLight.FLMine mine = mines.get( pos );
-		if (mines != null) {
-			//mines.wither();
-		}
-
-		mine = seed.couch( pos, this );
-		mines.put( pos, mine );
-
-		GameScene.plantSeed( pos );
-
+	public FancyLight.FLMine mine(FancyLight.FLMine mine,int pos){
+		mines.put(pos,mine);
 		return mine;
 	}
 	public void uproot( int pos ) {
@@ -1233,7 +1224,17 @@ public abstract class Level implements Bundlable {
 			}
 		}
 		FancyLight.FLMine mine = mines.get(cell);
-		if(mine!=null) mine.trigger();
+		if(mine!=null) {
+			//mine.trigger();
+			Heap heap = Dungeon.level.heaps.get(cell);
+			if (heap != null) {
+				Char ch = Actor.findChar(cell);
+				if (!(ch instanceof Hero)){
+					mine.trigger();
+					heap.remove(mine);
+				}
+			}
+		}
 
 		if (hard && Blob.volumeAt(cell, Web.class) > 0){
 			blobs.get(Web.class).clear(cell);
@@ -1368,6 +1369,17 @@ public abstract class Level implements Bundlable {
 				}
 			} else if (((Hero) c).hasTalent(Talent.SNIPERS_INTUITION)) {
 				int range = 2;
+				for (Mob mob : mobs) {
+					int p = mob.pos;
+					if (!fieldOfView[p] && distance(c.pos, p) <= range) {
+						for (int i : PathFinder.NEIGHBOURS9) {
+							heroMindFov[mob.pos + i] = true;
+						}
+					}
+				}
+			}else if (((Hero) c).hasTalent(Talent.HB_5)) {
+				Hero h = (Hero) c;
+				int range = 1+h.pointsInTalent(Talent.HB_5);
 				for (Mob mob : mobs) {
 					int p = mob.pos;
 					if (!fieldOfView[p] && distance(c.pos, p) <= range) {

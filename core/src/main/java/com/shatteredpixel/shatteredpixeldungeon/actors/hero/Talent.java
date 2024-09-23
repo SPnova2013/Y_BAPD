@@ -64,6 +64,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FancyLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Gloves;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.gun.AR.AR;
@@ -78,6 +79,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWea
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -565,6 +567,11 @@ public enum Talent {
 		public void tintIcon(Image icon) { icon.hardlight(0.15f, 0.2f, 0.5f); }
 		public float iconFadePercent() { return Math.max(0, visualcooldown() / 30); }
 	};
+	public static class BarrelBurstCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0.15f, 0.2f, 0.5f); }
+		public float iconFadePercent() { return Math.max(0, visualcooldown() / 30); }
+	};
 	public static class EmergencyHealingCooldown extends FlavourBuff{
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0xFF9AB0); }
@@ -1027,6 +1034,9 @@ public enum Talent {
 //				Buff.affect( hero, PhysicalEmpower.class).set(Math.round(hero.lvl / (4f - hero.pointsInTalent(FOCUSED_MEAL))), 1);
 //			}
 //		}
+		if (hero.hasTalent(EFFECTIVE_MEAL)) {
+			Buff.affect(hero, Swiftthistle.TimeBubble.class).set(1+hero.pointsInTalent(EFFECTIVE_MEAL));
+		}
 	}
 
 	public static class WarriorFoodImmunity extends FlavourBuff{
@@ -1041,11 +1051,13 @@ public enum Talent {
 		if (item instanceof MeleeWeapon){
 			factor *= 1f + 1.5f*hero.pointsInTalent(ADVENTURERS_INTUITION); //instant at +2 (see onItemEquipped)
 			factor *= 1f + 1.5f*hero.pointsInTalent(ROBOTS_INTUITION);
+			if(hero.hasTalent(CRAFTSMANSHIP)) factor*=2f;
 		}
 		// Affected by both Warrior(2.5x/inst.) and Duelist(1.75x/2.5x) talents
 		if (item instanceof Armor){
 			factor *= 1f + 0.75f*hero.pointsInTalent(ADVENTURERS_INTUITION);
 			factor *= 1f + 1.5f*hero.pointsInTalent(ROBOTS_INTUITION); //instant at +2 (see onItemEquipped)
+			if(hero.hasTalent(CRAFTSMANSHIP)) factor*=2f;
 		}
 		// 3x/instant for Mage (see Wand.wandUsed())
 //		if (item instanceof Wand){
@@ -1204,6 +1216,9 @@ public enum Talent {
 		if (hero.pointsInTalent(THIEFS_INTUITION) == 2){
 			if (item instanceof Ring) ((Ring) item).setKnown();
 		}
+		if(hero.pointsInTalent(CRAFTSMANSHIP)==2){
+			if(item instanceof Weapon || item instanceof Armor) item.cursedKnown = true;
+		}
 	}
 
 	//note that IDing can happen in alchemy scene, so be careful with VFX here
@@ -1237,7 +1252,7 @@ public enum Talent {
 		if (hero.hasTalent(Talent.SURPRISE_ATTACK)
 				&& enemy instanceof Mob && ((Mob) enemy).surprisedBy(hero)
 				&& enemy.buff(SuckerPunchTracker.class) == null){
-			dmg += Random.IntRange(hero.pointsInTalent(Talent.SURPRISE_ATTACK) , 2);
+			dmg += hero.pointsInTalent(Talent.SURPRISE_ATTACK)+1;
 			Buff.affect(enemy, SuckerPunchTracker.class);
 		}
 
@@ -1291,12 +1306,17 @@ public enum Talent {
 			}
 		}
 
+		if(hero.hasTalent(BARTITSU) && hero.belongings.weapon instanceof FancyLight && !(((FancyLight) hero.belongings.weapon).isSet())){
+			dmg+= (1+hero.pointsInTalent(BARTITSU));
+		}
+
 		return dmg;
 	}
 
 	public static class SuckerPunchTracker extends Buff{};
 	public static class ForLightTracker extends Buff{};
 	public static class DefensiveMatrixTracker extends Buff{};
+	public static class ReactiveShieldTracker extends Buff{};
 
 	public static class FollowupStrikeTracker extends FlavourBuff{
 		public int object;

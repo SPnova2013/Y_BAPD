@@ -137,7 +137,7 @@ public class BlastMissile extends Buff implements ActionIndicator.Action {
                     affected.remove(mob); //defender isn't hurt by lightning
                     for (Char ch : affected) {
                         if (ch.alignment != hero.alignment) {
-                            ch.damage(Random.IntRange(1, 3), shocking);
+                            ch.damage(Random.IntRange(hero.pointsInTalent(Talent.EXPLOSION_2), 3*hero.pointsInTalent(Talent.EXPLOSION_2)), shocking);
                         }
                     }
 
@@ -152,7 +152,7 @@ public class BlastMissile extends Buff implements ActionIndicator.Action {
                     CellEmitter.get(mob.pos).burst(SmokeParticle.FACTORY, 4);
                     Sample.INSTANCE.play(Assets.Sounds.BLAST, 1, Random.Float(0.7f, 1.2f));
                 }
-                if (hero.hasTalent(Talent.EXPLOSION_3) && Random.Float() < 3/(float)hero.pointsInTalent(Talent.EXPLOSION_3)) {
+                if (hero.hasTalent(Talent.EXPLOSION_3) && Random.Float() < (float)hero.pointsInTalent(Talent.EXPLOSION_3)/3f) {
                     Buff.affect(mob, Burning.class).reignite(mob);
                 }
                 attached.detach();

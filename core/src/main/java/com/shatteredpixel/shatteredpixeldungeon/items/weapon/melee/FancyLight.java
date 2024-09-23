@@ -1,6 +1,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.PROFICIENT_RELOAD;
+import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.RAPID_SHOOTING;
+import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SHELL_SHOCK;
+import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.THERMO_YEILD;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -10,8 +14,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SmokeScreen;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Slow;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -40,10 +48,12 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class FancyLight extends MeleeWeapon{
     {
@@ -63,6 +73,7 @@ public class FancyLight extends MeleeWeapon{
     public static final String AC_STARSHELL = "STARSHELL";
     protected int accessories = 0;
     private boolean isSet = false;
+    public boolean isSet(){return isSet;}
     private boolean isFirstLight = true;
     private boolean isFly = false;
     private boolean isSplit = false;
@@ -72,7 +83,7 @@ public class FancyLight extends MeleeWeapon{
     private boolean isAP = false;
     private boolean isMine = false;
     public boolean isMine(){return isMine;}
-    private int getNapalmTimes = 0;
+    private int napalmTimes = 0;
     private int fireTime = 0;
     private int toxic = 0;
     private int smoke = 0;
@@ -93,7 +104,6 @@ public class FancyLight extends MeleeWeapon{
         SPLIT       //分裂弹头数
     }
     private Map<FL, Float> factors = new HashMap<>();
-
     public FancyLight(){
         isHE = false;
         factors.put(FL.STR, 0f);//力量修正——初始0
@@ -125,7 +135,7 @@ public class FancyLight extends MeleeWeapon{
         int req = 10;
         req += accessories;
         req -= hero.pointsInTalent(Talent.MT_MASTER);
-        req += get(FL.STR);
+        req += Math.round(get(FL.STR));
         if (masteryPotionBonus) req -= 2;
         return req;
     }
@@ -152,6 +162,18 @@ public class FancyLight extends MeleeWeapon{
         ));
     }
     @Override
+    public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
+        if (super.doUnequip(hero, collect, single)){
+            if (hero.belongings.secondWep!=null){
+                hero.belongings.secondWep.doUnequip(hero,true);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+    //按键绑定
+    @Override
     public ArrayList<String> actions(Hero hero) {
         ArrayList<String> actions = super.actions(hero);
         if (isEquipped( hero )) {
@@ -165,6 +187,7 @@ public class FancyLight extends MeleeWeapon{
         }
         return actions;
     }
+    //按键操作
     @Override
     public void execute(Hero hero, String action) {
         super.execute(hero, action);
@@ -235,9 +258,11 @@ public class FancyLight extends MeleeWeapon{
             }
         }
         private void callShell(FancyLight fl, int target){
-            hero.spend(Math.max(0,fl.get(FL.RATE)));
+            float rate = fl.get(FL.RATE);
+            if(hero.hasTalent(PROFICIENT_RELOAD)) rate*=(1f-0.1f*hero.pointsInTalent(PROFICIENT_RELOAD));
+            hero.spend(Math.max(0,rate));
             for(int i=0;i<fl.get(FL.SPLIT);i++) {
-                Buff.append(Dungeon.hero, ShellIncoming.class).setup(
+                Buff.append(Dungeon.hero, ShellIncoming.class).set(
                         target,                             //目标地点
                         Dungeon.depth,                      //楼层，不在同一层则不引爆
                         fl                                  //武器本体
@@ -252,6 +277,74 @@ public class FancyLight extends MeleeWeapon{
     };
     //处理炮弹飞行及落地爆炸过程用的buff
     public static class ShellIncoming extends Buff {
+        private Shell shell = Reflection.newInstance(Shell.class);
+        FancyLight fl;
+        public void set(int pos, int explodeDepth, FancyLight fl){
+            this.fl = fl;
+            shell.set(pos,explodeDepth,fl);
+        }
+        @Override
+        public boolean act() {
+            if (shell.explodeDepth == Dungeon.depth) {
+                shell.left--;
+                if (shell.left <= 0) {
+                    MagicMissile missile = ((MagicMissile) curUser.sprite.parent.recycle(MagicMissile.class));
+                    missile.reset(MagicMissile.MAGIC_MISSILE, shell.targetpos % Dungeon.level.width(), shell.targetpos, new Callback() {
+                        @Override
+                        public void call() {
+                            if(shell.isMine) {
+                                FLMine mine = Objects.requireNonNull(Reflection.newInstance(FLMine.class)).set(shell.targetpos, Dungeon.depth, fl);
+                                Dungeon.level.drop(mine, shell.targetpos);
+                                Dungeon.level.mine(mine, shell.targetpos);
+                            }else {
+                                shell.doExplode();
+                            }
+                            next();
+                            detach();
+                        }
+                    },
+                            1000);
+                } else {
+                    curUser.sprite.parent.addToBack(new TargetedCell(shell.selectedpos, 0xFF0000));
+                }
+            }
+            spend(TICK);
+            return true;
+        }
+    }
+    //地雷
+    public static class FLMine extends Item implements Bundlable{
+        {
+            image = ItemSpriteSheet.AMMO_BOX;
+        }
+        private Shell shell = Reflection.newInstance(Shell.class);
+        public int pos;
+        private static final String POS	= "pos";
+        public FLMine set(int pos, int explodeDepth, FancyLight fl){
+            shell.set(pos,explodeDepth,fl);
+            return this;
+        }
+        public void trigger(){
+            shell.doExplode();
+        }
+        @Override
+        public boolean doPickUp(Hero hero, int pos) {
+            GLog.i(Messages.get(FancyLight.FLMine.class, "defuse"));
+            hero.spendAndNext( TIME_TO_PICK_UP );
+            return true;
+        }
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            pos = bundle.getInt( POS );
+        }
+
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            bundle.put( POS, pos );
+        }
+    }
+    //爆炸
+    public static class Shell{
         private int selectedpos;//用来显示炮弹选择时的点，因为实际落点可能和选择的位置不一样
         private int targetpos;
         private int explodeDepth;
@@ -267,8 +360,7 @@ public class FancyLight extends MeleeWeapon{
         private boolean isHE;
         private boolean isAP;
         private boolean isMine;
-
-        public void setup(int pos, int explodeDepth, FancyLight fl) {
+        protected void set(int pos, int explodeDepth, FancyLight fl){
             selectedpos = pos;
             this.targetpos = pos;
             this.explodeDepth = explodeDepth;
@@ -287,31 +379,8 @@ public class FancyLight extends MeleeWeapon{
             isMine = fl.isMine;
 
             if (Random.Float(1) >= fl.get(FL.ACC))
-                targetpos = targetpos + PathFinder.NEIGHBOURS8[Random.Int(8)];
-        }
-
-        @Override
-        public boolean act() {
-            if (explodeDepth == Dungeon.depth) {
-                left--;
-                if (left <= 0) {
-                    MagicMissile missile = ((MagicMissile) curUser.sprite.parent.recycle(MagicMissile.class));
-                    missile.reset(MagicMissile.MAGIC_MISSILE, targetpos % Dungeon.level.width(), targetpos, new Callback() {
-                        @Override
-                        public void call() {
-                            if(isMine) Dungeon.level.mine();
-                            else doExplode();
-                        }
-                    },
-                            1000);
-                } else {
-                    curUser.sprite.parent.addToBack(new TargetedCell(selectedpos, 0xFF0000));
-                }
-            }
-            spend(TICK);
-            return true;
-        }
-        private void doExplode() {
+                targetpos = targetpos + PathFinder.NEIGHBOURS8[Random.Int(8)];}
+        protected void doExplode() {
             boolean[] FOV = new boolean[Dungeon.level.length()];
             Point c = Dungeon.level.cellToPoint(targetpos);
             ShadowCaster.castShadow(c.x, c.y, FOV, Dungeon.level.losBlocking, explodeRange);
@@ -343,8 +412,13 @@ public class FancyLight extends MeleeWeapon{
                 damage = Math.round(damage * dmgFactor);
                 if (!(ch.pos == targetpos && isAP)) damage -= ch.drRoll();
                 if (isHE) damage -= ch.drRoll();
-                ch.damage(damage, this);
+                if(hero.hasTalent(THERMO_YEILD)) damage+= (1+2*hero.pointsInTalent(THERMO_YEILD));
+                if(hero.hasTalent(SHELL_SHOCK) && ch instanceof Mob){
+                    if(ch.pos == targetpos && Random.Int(20)<hero.pointsInTalent(SHELL_SHOCK)+2) affectShellShockDebuff((Mob)ch);
+                    else if (ch.pos != targetpos && Random.Int(10)<hero.pointsInTalent(SHELL_SHOCK)+1) affectShellShockDebuff((Mob)ch);
+                }
 
+                ch.damage(damage, this);
                 if (ch == Dungeon.hero && !ch.isAlive()) {
                     Dungeon.fail(Bomb.class);
                 }
@@ -356,54 +430,31 @@ public class FancyLight extends MeleeWeapon{
                         && mob.state != mob.HUNTING) {
                     mob.notice();
                     mob.state = mob.WANDERING;
+                    if(hero.hasTalent(SHELL_SHOCK)){
+                        if(Dungeon.level.distance(targetpos, mob.pos) > explodeRange && Random.Int(20)<hero.pointsInTalent(SHELL_SHOCK)){
+                            affectShellShockDebuff(mob);
+                        }
+                    }
                 }
             }
-
-            next();
-            detach();
         }
     }
-    //地雷
-    public class FLMine implements Bundlable{
-
-        public int pos;
-        private static final String POS	= "pos";
-        public void trigger(){
-            Char ch = Actor.findChar(pos);
-            if (ch instanceof Hero){
-                return;
-            }
-            //doExplode();
-        }
-        @Override
-        public void restoreFromBundle(Bundle bundle) {
-            pos = bundle.getInt( POS );
-        }
-
-        @Override
-        public void storeInBundle(Bundle bundle) {
-            bundle.put( POS, pos );
-        }
-    }
-    private class Shell{
-
-        private int selectedpos;//用来显示炮弹选择时的点，因为实际落点可能和选择的位置不一样
-        private int targetpos;
-        private int explodeDepth;
-        private int left;
-        private int weaponlevel;
-        private int explodeRange;
-        private int fireTime;
-        private int gasAmount;
-        private int smokeAmount;
-        private float dmgFactor;
-        private float centerDmgFactor;
-        private float edgeDmgFactor;
-        private boolean isHE;
-        private boolean isAP;
-        private boolean isMine;
-        protected void set(int pos, int explodeDepth, FancyLight fl){}
-    }
+    //弹震症Debuff
+    private static void affectShellShockDebuff(Mob mob){
+        switch (Random.Int(4)){
+        case 0:
+            Buff.affect(mob, Blindness.class, Blindness.DURATION);
+            break;
+        case 1:
+            Buff.affect(mob, Slow.class, Slow.DURATION);
+            break;
+        case 2:
+            Buff.affect(mob, Vertigo.class, Vertigo.DURATION);
+            break;
+        case 3: default:
+            Buff.affect(mob, Terror.class, Terror.DURATION);
+            break;
+    }}
     //选择拆解强化用的物品
     protected static WndBag.ItemSelector gunSelector = new WndBag.ItemSelector() {
 
@@ -432,38 +483,89 @@ public class FancyLight extends MeleeWeapon{
     //强化项目
     public static abstract class FLUpgrades implements Bundlable {
         public static final String[] Kinds = new String[]{"HG","SR","GL","MG","SMG","SG","AR","UN"};
-        public static final String[] HG = new String[]{
-                "LightWeight","StarShell","SemiClosed"};
-        public static final String[] SR = new String[]{
-                "FireControl","ArmorPiercing"};
-        public static final String[] GL = new String[]{
-                "HighExplosive","LayMine"};
-        public static final String[] MG = new String[]{
-                "RapidFire","HeavyWarhead"};
-        public static final String[] SMG = new String[]{
-                "Portable","GlideRangeExtend"};
-        public static final String[] SG = new String[]{
-                "ClusterBomb","Fragmentation"};
-        public static final String[] AR = new String[]{
-                "PowderCharge","Hypervelocity"};
-        public static final String[] UN = new String[]{
-                "Napalm","Toxic","Smoke"};
-        public static String getRandom(){
-            String weapon = Kinds[Random.Int(Kinds.length)];
-            return getRandomByWeapon(weapon);
-        }
-        public static String getRandomByWeapon(String weapon){
-            switch (weapon){
-                case "HG": return HG[Random.Int(HG.length)];
-                case "SR": return SR[Random.Int(SR.length)];
-                case "GL": return GL[Random.Int(GL.length)];
-                case "MG": return MG[Random.Int(MG.length)];
-                case "SMG": return SMG[Random.Int(SMG.length)];
-                case "SG": return SG[Random.Int(SG.length)];
-                case "AR": return AR[Random.Int(AR.length)];
-                case "UN": return UN[Random.Int(UN.length)];
-                default: return getRandom();
+        public enum FLUpCategory {
+            HG(0),SR(0),GL(0),MG(0),SMG(0),SG(0),AR(0),UN(0);
+            public String[] strs;
+            public String str;
+            public float prob;
+            public float[] probs;
+            public float[] defaultProbs = null;
+            private FLUpCategory(float prob) {
+                this.prob = prob;
             }
+            static {
+                HG.strs = new String[]{"LightWeight","StarShell","SemiClosed"};
+                HG.defaultProbs= new float[]{1,1,1};
+                HG.probs = HG.defaultProbs.clone();
+                SR.strs = new String[]{"FireControl","ArmorPiercing"};
+                SR.defaultProbs= new float[]{1,1};
+                SR.probs = SR.defaultProbs.clone();
+                GL.strs = new String[]{"HighExplosive","LayMine"};
+                GL.defaultProbs= new float[]{1,1};
+                GL.probs = GL.defaultProbs.clone();
+                MG.strs = new String[]{"RapidFire","HeavyWarhead"};
+                MG.defaultProbs= new float[]{1,1};
+                MG.probs = MG.defaultProbs.clone();
+                SMG.strs = new String[]{"Portable","GlideRangeExtend"};
+                SMG.defaultProbs= new float[]{1,1};
+                SMG.probs = SMG.defaultProbs.clone();
+                SG.strs = new String[]{"ClusterBomb","Fragmentation"};
+                SG.defaultProbs= new float[]{1,1};
+                SG.probs = SG.defaultProbs.clone();
+                AR.strs = new String[]{"PowderCharge","Hypervelocity"};
+                AR.defaultProbs= new float[]{1,1};
+                AR.probs = AR.defaultProbs.clone();
+                UN.strs = new String[]{"Napalm","Toxic","Smoke"};
+                UN.defaultProbs= new float[]{1,1,1};
+                UN.probs = UN.defaultProbs.clone();
+            }
+        }
+        public static void reset(FLUpCategory cat) {
+            if (cat.defaultProbs != null) cat.probs = cat.defaultProbs.clone();
+        }
+        public static <T extends Enum<?>> T getRandomEnum(Class<T> enumClass) {
+            T[] enumConstants = enumClass.getEnumConstants();
+            return enumConstants[Random.Int(enumConstants.length)];
+        }
+        public static String getRandom(){
+            return getRandomByCategory(getRandomEnum(FLUpCategory.class));
+        }
+        public static String getRandomByItem(Item item){
+            FLUpCategory cat;
+            switch (item.getClass().getSuperclass().getSimpleName()){
+                case "HG":  cat = FLUpCategory.HG;  break;
+                case "SR":  cat = FLUpCategory.SR;  break;
+                case "GL":  cat = FLUpCategory.GL;  break;
+                case "MG":  cat = FLUpCategory.MG;  break;
+                case "SMG": cat = FLUpCategory.SMG; break;
+                case "SG":  cat = FLUpCategory.SG;  break;
+                case "AR":  cat = FLUpCategory.AR;  break;
+                default:    cat = FLUpCategory.UN;  break;
+            }
+            return getRandomByCategory(cat);
+        }
+        public static String getRandomByCategory(FLUpCategory cat){
+            if(cat.probs != null){
+                int i = Random.chances(cat.probs);
+                if (i == -1) {
+                    getRandom();
+                }
+                String result = cat.strs[i];
+                checkFLUpResult(result);
+                return result;
+            }else{
+                return getRandom();
+            }
+        }
+        private static void checkFLUpResult(String result){
+            FancyLight fl = hero.belongings.getItem(FancyLight.class);
+            if(Objects.equals(result, "StarShell"))                                     FLUpCategory.HG.probs[1] = 0;
+            if(Objects.equals(result, "SemiClosed") && fl.get(FL.FIRENOISE) == 1)       FLUpCategory.HG.probs[2] = 0;
+            if(Objects.equals(result, "FireControl") && fl.get(FancyLight.FL.ACC)>=100) FLUpCategory.SR.probs[0] = 0;
+            if(Objects.equals(result, "HighExplosive"))                                 FLUpCategory.GL.probs[0]/= 2;
+            if(Objects.equals(result, "LayMine") && fl.isMine())                        FLUpCategory.GL.probs[1] = 0;
+            if(Objects.equals(result,"Portable") && fl.get(FancyLight.FL.SETTIME)<=0)   FLUpCategory.SMG.probs[0] = 0;
+            if(Objects.equals(result,"Hypervelocity") && fl.get(FancyLight.FL.FLYTIME)<=0)FLUpCategory.AR.probs[0] = 0;
         }
         public static void changeFLStatus(FancyLight fl, String selected){
             switch (selected){
@@ -530,8 +632,8 @@ public class FancyLight extends MeleeWeapon{
                     fl.add(FL.FLYTIME,-1);
                     break;
                 case "Napalm":
-                    fl.getNapalmTimes++;
-                    fl.fireTime = fl.getNapalmTimes*(fl.getNapalmTimes+1)/2;
+                    fl.napalmTimes++;
+                    fl.fireTime = fl.napalmTimes *(fl.napalmTimes +1)/2;
                     break;
                 case "Toxic":
                     fl.toxic+=250;
@@ -544,5 +646,68 @@ public class FancyLight extends MeleeWeapon{
             }
             updateQuickslot();
         }
+    }
+    private static final String FACTORS = "Factors";
+    private static final String ISSET = "isset";
+    private static final String ISFIRSTLIGHT = "isfirstlight";
+    private static final String ISFLY = "isfly";
+    private static final String ISSPLIT = "issplit";
+    private static final String ISSTAR = "isstar";
+    private static final String ISHE = "ishe";
+    private static final String ISMINE = "ismine";
+    private static final String NAPALMTIMES = "napalmtimes";
+    private static final String FIRETIME = "firetime";
+    private static final String TOXIC = "toxic";
+    private static final String SMOKE = "smoke";
+
+    @Override
+    public void storeInBundle( Bundle bundle ) {
+        super.storeInBundle(bundle);
+        if (factors != null) {
+            bundle.put(FACTORS + "_size", factors.size()); // 存储 HashMap 的大小
+            int index = 0;
+            for (Map.Entry<FL, Float> entry : factors.entrySet()) {
+                bundle.put(FACTORS + "_key_" + index, entry.getKey().name()); // 使用枚举的 name() 方法存储键
+                bundle.put(FACTORS + "_value_" + index, entry.getValue()); // 存储值
+                index++;
+            }
+        }
+        bundle.put(ISSET, isSet);
+        bundle.put(ISFIRSTLIGHT, isFirstLight);
+        bundle.put(ISFLY, isFly);
+        bundle.put(ISSPLIT, isSplit);
+        bundle.put(ISSTAR, isStar);
+        bundle.put(ISHE, isHE);
+        bundle.put(ISMINE, isMine);
+        bundle.put(NAPALMTIMES, napalmTimes);
+        bundle.put(FIRETIME, fireTime);
+        bundle.put(TOXIC, toxic);
+        bundle.put(SMOKE, smoke);
+    }
+
+    @Override
+    public void restoreFromBundle( Bundle bundle ) {
+        super.restoreFromBundle(bundle);
+
+        factors.clear(); // 清空原来的 HashMap
+        int size = bundle.getInt(FACTORS + "_size"); // 获取 HashMap 的大小
+        for (int i = 0; i < size; i++) {
+            String keyName = bundle.getString(FACTORS + "_key_" + i); // 取出键名
+            FL key = FL.valueOf(keyName); // 将字符串转换为对应的枚举类型
+            Float value = bundle.getFloat(FACTORS + "_value_" + i); // 取出值
+            factors.put(key, value); // 将键值对放回 HashMap
+        }
+        isSet = bundle.getBoolean(ISSET);
+        isFirstLight = bundle.getBoolean(ISFIRSTLIGHT);
+        isFly = bundle.getBoolean(ISFLY);
+        isSplit = bundle.getBoolean(ISSPLIT);
+        isStar = bundle.getBoolean(ISSTAR);
+        isHE = bundle.getBoolean(ISHE);
+        isMine = bundle.getBoolean(ISMINE);
+        napalmTimes = bundle.getInt(NAPALMTIMES);
+        fireTime = bundle.getInt(FIRETIME);
+        toxic = bundle.getInt(TOXIC);
+        smoke = bundle.getInt(SMOKE);
+        if(isSet) defaultAction = AC_SHOOT;
     }
 }

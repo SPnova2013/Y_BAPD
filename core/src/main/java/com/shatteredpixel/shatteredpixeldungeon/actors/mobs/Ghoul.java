@@ -266,7 +266,7 @@ public class Ghoul extends Mob {
 				ghoul.die(this);
 				return true;
 			}
-
+			turnsToRevive--;
 			if (turnsToRevive <= 0){
 				if (Actor.findChar( ghoul.pos ) != null) {
 					ArrayList<Integer> candidates = new ArrayList<>();
